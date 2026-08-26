@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  cvs          CV[]
+  offers       JobOffer[]
+  applications Application[]
+}
+
+model CV {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  filename      String
+  extractedText String   @db.Text
+  uploadedAt    DateTime @default(now())
+}
+
+model JobOffer {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+  title             String
+  company           String?
+  rawText           String   @db.Text
+  extractedKeywords Json?
+  createdAt         DateTime @default(now())
+}
+
+model Application {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  cvId            String
+  offerId         String
+  generatedLetter String?  @db.Text
+  matchScore      Int?
+  status          String   @default("draft")
+  createdAt       DateTime @default(now())
+}
