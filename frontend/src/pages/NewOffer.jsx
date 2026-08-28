@@ -66,9 +66,16 @@ export default function NewOffer() {
 
         {error && <p className="form-error">{error}</p>}
 
-        <button type="submit" disabled={loading}>
-          {loading ? 'Génération en cours (10-20s)...' : 'Générer ma candidature'}
-        </button>
+       <div>
+  <button type="submit" disabled={loading}>
+    {loading ? <span className="loading-text">Génération en cours...</span> : 'Générer ma candidature'}
+  </button>
+  {loading && (
+    <div className="progress-track">
+      <div className="progress-fill" />
+    </div>
+  )}
+</div>
       </form>
     </div>
   )

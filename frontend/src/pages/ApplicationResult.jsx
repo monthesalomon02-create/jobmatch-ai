@@ -30,15 +30,21 @@ export default function ApplicationResult() {
       </div>
 
       <div className="skills-overlap">
-        {offer.extractedKeywords?.hardSkills?.map((skill) => (
-          <span key={skill} className="skill-pill">{skill}</span>
-        ))}
+        {offer.extractedKeywords?.hardSkills?.map((skill, i) => (
+  <span key={skill} className="skill-pill" style={{ animationDelay: `${i * 0.08}s` }}>{skill}</span>
+))}
       </div>
 
       <div className="letter-card">
-        <h2>Lettre de motivation générée</h2>
-        <p className="letter-text">{application.generatedLetter}</p>
-      </div>
+  <h2>Lettre de motivation générée</h2>
+  <p className="letter-text">
+    {application.generatedLetter.split('\n').map((line, i) => (
+      <span key={i} className="letter-line" style={{ animationDelay: `${i * 0.06}s`, display: 'block' }}>
+        {line || '\u00A0'}
+      </span>
+    ))}
+  </p>
+</div>
 
       <Link to="/new-offer" className="btn-secondary">Analyser une autre offre</Link>
     </div>
