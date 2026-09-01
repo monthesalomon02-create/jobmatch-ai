@@ -4,10 +4,20 @@ const cors = require('cors')
 const authRoutes = require('./routes/auth')
 const cvRoutes = require('./routes/cv')
 const app = express()
+app.disable('x-powered-by')
 const offerRoutes = require('./routes/offers')
 const applicationRoutes = require('./routes/applications')
 
-app.use(cors())
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://jobmatch-ai-eta.vercel.app'
+]
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}))
 app.use(express.json())
 app.use('/cv', cvRoutes)
 app.use('/offers', offerRoutes)

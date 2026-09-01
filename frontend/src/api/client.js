@@ -1,3 +1,4 @@
+/* eslint-env browser */
 import axios from 'axios'
 
 const api = axios.create({
