@@ -2,6 +2,21 @@ const { Mistral } = require('@mistralai/mistralai')
 
 const client = new Mistral({ apiKey: process.env.MISTRAL_API_KEY })
 
+async function callWithRetry(fn, maxRetries = 3, delayMs = 2000) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      const isRetryable = error.statusCode === 503 || error.statusCode === 429
+      if (!isRetryable || attempt === maxRetries) {
+        throw error
+      }
+      console.log(`Tentative ${attempt} échouée (${error.statusCode}), nouvel essai dans ${delayMs}ms...`)
+      await new Promise((resolve) => setTimeout(resolve, delayMs))
+    }
+  }
+}
+
 const SYSTEM_PROMPT = `Tu es un assistant spécialisé en recrutement. Ta tâche est d'analyser une offre d'emploi et d'en extraire les informations clés au format JSON strict.
 
 Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou après, avec cette structure exacte :
@@ -17,15 +32,17 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou après, avec 
 Limite hardSkills et keywords à 10 éléments maximum chacun, softSkills à 5 maximum.`
 
 async function extractKeywords(jobOfferText) {
-  const response = await client.chat.complete({
-    model: 'mistral-small-latest',
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: jobOfferText }
-    ],
-    responseFormat: { type: 'json_object' },
-    temperature: 0.2
-  })
+  const response = await callWithRetry(() =>
+    client.chat.complete({
+      model: 'mistral-small-latest',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: jobOfferText }
+      ],
+      responseFormat: { type: 'json_object' },
+      temperature: 0.2
+    })
+  )
 
   const rawContent = response.choices[0].message.content
   return JSON.parse(rawContent)
@@ -58,15 +75,17 @@ ${offerText}
 
 Compétences clés extraites de l'offre : ${JSON.stringify(extractedKeywords)}`
 
-  const response = await client.chat.complete({
-    model: 'mistral-small-latest',
-    messages: [
-      { role: 'system', content: LETTER_SYSTEM_PROMPT },
-      { role: 'user', content: userContent }
-    ],
-    responseFormat: { type: 'json_object' },
-    temperature: 0.4
-  })
+  const response = await callWithRetry(() =>
+    client.chat.complete({
+      model: 'mistral-small-latest',
+      messages: [
+        { role: 'system', content: LETTER_SYSTEM_PROMPT },
+        { role: 'user', content: userContent }
+      ],
+      responseFormat: { type: 'json_object' },
+      temperature: 0.4
+    })
+  )
 
   const rawContent = response.choices[0].message.content
   return JSON.parse(rawContent)
