@@ -1,0 +1,45 @@
+# Dépendances
+node_modules/
+
+# Variables d'environnement
+.env
+.env.local
+.env.*.local
+*.local
+
+# Prisma
+/generated/prisma
+backend/generated/prisma
+
+# Build frontend
+dist/
+dist-ssr/
+
+# Fichiers uploadés (backend)
+uploads/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Éditeurs / IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers de test locaux
+test-*.json
