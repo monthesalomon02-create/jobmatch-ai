@@ -1,17 +1,18 @@
-const { Mistral } = require('@mistralai/mistralai')
+const { GoogleGenerativeAI } = require('@google/generative-ai')
 
-const client = new Mistral({ apiKey: process.env.MISTRAL_API_KEY })
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
 async function callWithRetry(fn, maxRetries = 3, delayMs = 2000) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await fn()
     } catch (error) {
-      const isRetryable = error.statusCode === 503 || error.statusCode === 429
+      const isRetryable = error.status === 503 || error.status === 429
       if (!isRetryable || attempt === maxRetries) {
         throw error
       }
-      console.log(`Tentative ${attempt} échouée (${error.statusCode}), nouvel essai dans ${delayMs}ms...`)
+      console.log(`Tentative ${attempt} échouée (${error.status}), nouvel essai dans ${delayMs}ms...`)
       await new Promise((resolve) => setTimeout(resolve, delayMs))
     }
   }
@@ -32,19 +33,17 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou après, avec 
 Limite hardSkills et keywords à 10 éléments maximum chacun, softSkills à 5 maximum.`
 
 async function extractKeywords(jobOfferText) {
-  const response = await callWithRetry(() =>
-    client.chat.complete({
-      model: 'mistral-small-latest',
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: jobOfferText }
-      ],
-      responseFormat: { type: 'json_object' },
-      temperature: 0.2
+  const result = await callWithRetry(() =>
+    model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: `${SYSTEM_PROMPT}\n\nOffre d'emploi :\n${jobOfferText}` }] }],
+      generationConfig: {
+        temperature: 0.2,
+        responseMimeType: 'application/json'
+      }
     })
   )
 
-  const rawContent = response.choices[0].message.content
+  const rawContent = result.response.text()
   return JSON.parse(rawContent)
 }
 
@@ -63,7 +62,9 @@ Réponds UNIQUEMENT avec un objet JSON strict, sans texte avant ou après, avec 
 Ne mens jamais sur les compétences du candidat : ne mentionne dans la lettre que ce qui apparaît réellement dans le CV fourni.`
 
 async function generateApplication(cvText, offerText, extractedKeywords) {
-  const userContent = `CV du candidat :
+  const userContent = `${LETTER_SYSTEM_PROMPT}
+
+CV du candidat :
 ${cvText}
 
 ---
@@ -75,19 +76,17 @@ ${offerText}
 
 Compétences clés extraites de l'offre : ${JSON.stringify(extractedKeywords)}`
 
-  const response = await callWithRetry(() =>
-    client.chat.complete({
-      model: 'mistral-small-latest',
-      messages: [
-        { role: 'system', content: LETTER_SYSTEM_PROMPT },
-        { role: 'user', content: userContent }
-      ],
-      responseFormat: { type: 'json_object' },
-      temperature: 0.4
+  const result = await callWithRetry(() =>
+    model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: userContent }] }],
+      generationConfig: {
+        temperature: 0.4,
+        responseMimeType: 'application/json'
+      }
     })
   )
 
-  const rawContent = response.choices[0].message.content
+  const rawContent = result.response.text()
   return JSON.parse(rawContent)
 }
 
