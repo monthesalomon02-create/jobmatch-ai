@@ -29,6 +29,8 @@ async function createApplication(req, res) {
       offer.extractedKeywords
     )
 
+    result.letter = result.letter.replace(/—/g, ',').replace(/,\s*,/g, ',')
+
     const application = await prisma.application.create({
       data: {
         userId: req.userId,

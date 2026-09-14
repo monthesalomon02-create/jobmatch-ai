@@ -59,7 +59,9 @@ Réponds UNIQUEMENT avec un objet JSON strict, sans texte avant ou après, avec 
   "matchExplanation": "une phrase expliquant brièvement le score"
 }
 
-Ne mens jamais sur les compétences du candidat : ne mentionne dans la lettre que ce qui apparaît réellement dans le CV fourni.`
+Ne mens jamais sur les compétences du candidat : ne mentionne dans la lettre que ce qui apparaît réellement dans le CV fourni.
+
+N'utilise JAMAIS le tiret cadratin (—) dans le texte. Utilise à la place une virgule, un point, des deux-points, ou reformule la phrase selon ce qui convient le mieux au contexte.`
 
 async function generateApplication(cvText, offerText, extractedKeywords) {
   const userContent = `${LETTER_SYSTEM_PROMPT}
