@@ -12,7 +12,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
-  'https://jobmatch-ai-eta.vercel.app'
+  'https://jobmatch-ai-lovat-six.vercel.app'
 ]
 
 app.use(cors({
